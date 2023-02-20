@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 unrar = "0.4.4"
-tempdir = "0.3.7"
+tempfile = "3.3.0"
