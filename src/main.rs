@@ -1,4 +1,5 @@
 use std::{env, fs, io};
+
 use unrar::Archive;
 
 fn get_current_directory() -> String {
@@ -36,5 +37,13 @@ fn extract_rar(archives: Vec<String>, current_directory: &String) {
 }
 
 fn main() {
+    let current_directory = get_current_directory();
+    let archive_list = scan_for_rar(&current_directory);
     println!("Easy RAR to CBZ");
+
+    if archive_list.is_empty() {
+    } else {
+        println!("extracting");
+        extract_rar(archive_list, &current_directory);
+    }
 }
