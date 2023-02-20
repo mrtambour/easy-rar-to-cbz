@@ -1,5 +1,13 @@
 use std::{env, fs, io};
 
+fn get_current_directory() -> String {
+    env::current_dir()
+        .expect("error getting current directory")
+        .into_os_string()
+        .into_string()
+        .expect("error getting path")
+}
+
 fn scan_for_rar(current_dir: &String) -> Vec<String> {
     let mut archives_list = Vec::new();
     for entry in fs::read_dir(current_dir).expect("error occurred while trying to scan directory") {
