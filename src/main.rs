@@ -1,4 +1,5 @@
 use std::{env, fs, io};
+use unrar::Archive;
 
 fn get_current_directory() -> String {
     env::current_dir()
@@ -22,6 +23,16 @@ fn scan_for_rar(current_dir: &String) -> Vec<String> {
         }
     }
     archives_list
+}
+
+fn extract_rar(archives: Vec<String>, current_directory: &String) {
+    for rar in archives {
+        Archive::new(rar)
+            .extract_to(current_directory.clone())
+            .unwrap()
+            .process()
+            .unwrap();
+    }
 }
 
 fn main() {
