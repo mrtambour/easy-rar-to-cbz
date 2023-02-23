@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 unrar = "0.4.4"
 tempfile = "3.3.0"
+zip = "0.6.4"
+zip-extensions = "0.6.1"
