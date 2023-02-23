@@ -1,18 +1,15 @@
+use std::path::PathBuf;
 use std::{env, fs};
 
 use tempfile::TempDir;
 use unrar::Archive;
 use zip_extensions::*;
 
-fn get_current_directory() -> String {
-    env::current_dir()
-        .expect("error getting current directory")
-        .into_os_string()
-        .into_string()
-        .expect("error getting path")
+fn get_current_directory() -> PathBuf {
+    env::current_dir().expect("error getting current directory")
 }
 
-fn scan_for_rar(current_dir: &String) -> Vec<String> {
+fn scan_for_rar(current_dir: PathBuf) -> Vec<String> {
     let mut archives_list = Vec::new();
     for entry in fs::read_dir(current_dir).expect("error occurred while trying to scan directory") {
         let file_name = entry
@@ -80,7 +77,7 @@ fn extract_rar(archives: Vec<String>, target_directory: &String) {
 
 fn main() {
     let current_directory = get_current_directory();
-    let archive_list = scan_for_rar(&current_directory);
+    let archive_list = scan_for_rar(current_directory);
     println!("Easy RAR to CBZ");
 
     if archive_list.is_empty() {
