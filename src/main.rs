@@ -38,9 +38,14 @@ fn process_archives(archive_list: Vec<String>) {
             .expect("error getting path string")
             .to_string();
 
-        println!("processing: {}", archive.clone());
-        extract_rar(vec![archive], &temp_path);
         let path = std::path::Path::new(&target_archive_name);
+        println!("processing: {}", archive.clone());
+
+        if path.exists() {
+            println!("file already exists, skipping");
+            continue;
+        }
+        extract_rar(vec![archive], &temp_path);
 
         match fs::File::create(path) {
             Ok(_) => {}
@@ -80,7 +85,6 @@ fn main() {
 
     if archive_list.is_empty() {
     } else {
-        println!("extracting");
         process_archives(archive_list);
     }
 }
