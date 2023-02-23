@@ -28,7 +28,7 @@ fn scan_for_rar(current_dir: &String) -> Vec<String> {
     archives_list
 }
 
-fn process_archives(archive_list: Vec<String>) -> Option<String> {
+fn process_archives(archive_list: Vec<String>) {
     for archive in archive_list {
         let target_archive_name = format!("{}.zip", archive);
         let temp_dir = TempDir::new().expect("error creating temporary folder");
@@ -41,12 +41,26 @@ fn process_archives(archive_list: Vec<String>) -> Option<String> {
         println!("processing: {}", archive.clone());
         extract_rar(vec![archive], &temp_path);
         let path = std::path::Path::new(&target_archive_name);
-        let file = fs::File::create(path).expect("error creating new file");
+
+        match fs::File::create(path) {
+            Ok(_) => {}
+            Err(error) => {
+                println!("unable to create target zip: {error}");
+                match fs::remove_dir_all(&temp_path) {
+                    Ok(_) => {
+                        println!("temporary folder has been deleted");
+                    }
+                    Err(error) => {
+                        println!("error while deleting temporary folder: {error}");
+                        println!("unable to delete temporary folder at: {temp_path}");
+                    }
+                }
+            }
+        }
         zip_create_from_directory(&path.to_path_buf(), &path_buf)
             .expect("error zipping files from directory");
         fs::remove_dir_all(&temp_path).expect("error deleting temporary folder");
     }
-    None
 }
 
 fn extract_rar(archives: Vec<String>, target_directory: &String) {
