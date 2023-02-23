@@ -27,7 +27,7 @@ fn scan_for_rar(current_dir: PathBuf) -> Vec<String> {
 
 fn process_archives(archive_list: Vec<String>) {
     for archive in archive_list {
-        let target_archive_name = format!("{}.zip", archive);
+        let target_archive_name = format!("{}.cbz", archive);
         let temp_dir = TempDir::new().expect("error creating temporary folder");
         let path_buf = temp_dir.into_path();
         let temp_path = path_buf
