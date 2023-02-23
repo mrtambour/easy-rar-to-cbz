@@ -1,16 +1,15 @@
-use std::{env, fs, io};
+use std::path::PathBuf;
+use std::{env, fs};
 
+use tempfile::TempDir;
 use unrar::Archive;
+use zip_extensions::*;
 
-fn get_current_directory() -> String {
-    env::current_dir()
-        .expect("error getting current directory")
-        .into_os_string()
-        .into_string()
-        .expect("error getting path")
+fn get_current_directory() -> PathBuf {
+    env::current_dir().expect("error getting current directory")
 }
 
-fn scan_for_rar(current_dir: &String) -> Vec<String> {
+fn scan_for_rar(current_dir: PathBuf) -> Vec<String> {
     let mut archives_list = Vec::new();
     for entry in fs::read_dir(current_dir).expect("error occurred while trying to scan directory") {
         let file_name = entry
@@ -26,24 +25,63 @@ fn scan_for_rar(current_dir: &String) -> Vec<String> {
     archives_list
 }
 
-fn extract_rar(archives: Vec<String>, current_directory: &String) {
+fn process_archives(archive_list: Vec<String>) {
+    for archive in archive_list {
+        let target_archive_name = format!("{}.cbz", archive);
+        let temp_dir = TempDir::new().expect("error creating temporary folder");
+        let path_buf = temp_dir.into_path();
+        let temp_path = path_buf
+            .to_str()
+            .expect("error getting path string")
+            .to_string();
+
+        let path = std::path::Path::new(&target_archive_name);
+        println!("processing: {}", archive.clone());
+
+        if path.exists() {
+            println!("file already exists, skipping");
+            continue;
+        }
+        extract_rar(vec![archive], &temp_path);
+
+        match fs::File::create(path) {
+            Ok(_) => {}
+            Err(error) => {
+                println!("unable to create target zip: {error}");
+                match fs::remove_dir_all(&temp_path) {
+                    Ok(_) => {
+                        println!("temporary folder has been deleted");
+                    }
+                    Err(error) => {
+                        println!("error while deleting temporary folder: {error}");
+                        println!("unable to delete temporary folder at: {temp_path}");
+                    }
+                }
+            }
+        }
+        zip_create_from_directory(&path.to_path_buf(), &path_buf)
+            .expect("error zipping files from directory");
+        fs::remove_dir_all(&temp_path).expect("error deleting temporary folder");
+    }
+}
+
+fn extract_rar(archives: Vec<String>, target_directory: &String) {
     for rar in archives {
         Archive::new(rar)
-            .extract_to(current_directory.clone())
-            .unwrap()
+            .extract_to(target_directory.to_string())
+            .expect("error opening rar archive")
             .process()
-            .unwrap();
+            .expect("error extracting archive");
     }
 }
 
 fn main() {
     let current_directory = get_current_directory();
-    let archive_list = scan_for_rar(&current_directory);
+    let archive_list = scan_for_rar(current_directory);
     println!("Easy RAR to CBZ");
 
     if archive_list.is_empty() {
     } else {
-        println!("extracting");
-        extract_rar(archive_list, &current_directory);
+        process_archives(archive_list);
     }
 }
